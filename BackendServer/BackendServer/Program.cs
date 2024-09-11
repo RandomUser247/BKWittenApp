@@ -1,9 +1,28 @@
+using ContentDB.Migrations;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Register the DbContext with dependency injection
+builder.Services.AddDbContext<ContentDBContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("ContentDB")));
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 
 var app = builder.Build();
+
+// Apply pending migrations automatically at startup
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ContentDBContext>();
+    // check if there are pending migrations
+    if(dbContext.Database.GetPendingMigrations().Any())
+    {
+        dbContext.Database.Migrate();
+        dbContext.SaveChanges();
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -14,6 +33,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
 app.UseStaticFiles();
 
 app.UseRouting();

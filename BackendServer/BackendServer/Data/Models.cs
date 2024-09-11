@@ -60,15 +60,16 @@ namespace ContentDB.Migrations
     // DbContext for SQLite
     public class ContentDBContext : DbContext
     {
+        public ContentDBContext(DbContextOptions<ContentDBContext> options)
+       : base(options)
+        {
+        }
+
         public DbSet<User> Users { get; set; }
         public DbSet<Post> Posts { get; set; }
         public DbSet<Media> Media { get; set; }
         public DbSet<Event> Events { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseSqlite("Data Source=content.db");
-        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
