@@ -12,16 +12,17 @@ builder.Services.AddRazorPages();
 
 var app = builder.Build();
 
-// Apply pending migrations automatically at startup
+// Seed the database
 using (var scope = app.Services.CreateScope())
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<ContentDBContext>();
-    // check if there are pending migrations
-    if(dbContext.Database.GetPendingMigrations().Any())
-    {
-        dbContext.Database.Migrate();
-        dbContext.SaveChanges();
-    }
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<ContentDBContext>();
+
+    // Ensure the database is created
+    context.Database.EnsureCreated();
+
+    // Seed data
+    await context.SeedDataAsync();
 }
 
 // Configure the HTTP request pipeline.
