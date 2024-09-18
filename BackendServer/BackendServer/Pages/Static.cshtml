@@ -1,0 +1,31 @@
+﻿@page
+@model StaticModel
+@{
+    ViewData["Title"] = "Edit Static Content";
+}
+
+<h2>Edit Static Content</h2>
+
+<form method="post">
+    <div class="form-group">
+        <label for="contentSelect">Select Content:</label>
+        <select id="contentSelect" name="SelectedFile" asp-for="SelectedFile" class="form-control" asp-items="Model.FileOptions" onchange="this.form.submit();">
+        </select>
+    </div>
+
+    @if (Model.FileContent != null)
+    {
+        <div class="form-group mt-3">
+            <label for="content">Content:</label>
+            <textarea id="content" class="form-control" asp-for="FileContent" rows="10">@Model.FileContent</textarea>
+            <span asp-validation-for="FileContent" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-3">Save Changes</button>
+    }
+</form>
+
+@if (Model.SaveResult != null)
+{
+    <div class="alert alert-info mt-3">@Model.SaveResult</div>
+}

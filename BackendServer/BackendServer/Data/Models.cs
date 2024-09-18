@@ -102,7 +102,41 @@ namespace ContentDB.Migrations
                     Email = "test.user@example.com",
                     IsTeacher = false,
                     IsAdmin = false,
-                    PassHash = "testhash",
+                    PassHash = PasswordHelper.HashPassword("testhash"),
+                    TelNr = "123456789"
+                }); 
+                await SaveChangesAsync();
+            }
+
+            // Seed Teacher-User
+            if (!Users.Any(u => u.Email == "test.teacher@example.com"))
+            {
+                Users.Add(new User
+                {
+                    UserID = 2,
+                    FirstName = "Test",
+                    LastName = "User",
+                    Email = "test.teacher@example.com",
+                    IsTeacher = true,
+                    IsAdmin = false,
+                    PassHash = PasswordHelper.HashPassword("testhash"),
+                    TelNr = "123456789"
+                });
+                await SaveChangesAsync();
+            }
+
+            // Seed Admin-User
+            if (!Users.Any(u => u.Email == "test.admin@example.com"))
+            {
+                Users.Add(new User
+                {
+                    UserID = 3,
+                    FirstName = "Test",
+                    LastName = "User",
+                    Email = "test.admin@example.com",
+                    IsTeacher = true,
+                    IsAdmin = true,
+                    PassHash = PasswordHelper.HashPassword("testhash"),
                     TelNr = "123456789"
                 });
                 await SaveChangesAsync();
