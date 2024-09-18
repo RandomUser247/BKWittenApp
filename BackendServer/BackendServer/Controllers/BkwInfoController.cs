@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace BackendServer.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/bkw")]
     public class BkwController : ControllerBase
     {
         private readonly ContentDBContext _context;
