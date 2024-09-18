@@ -4,7 +4,7 @@ namespace BackendServer.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class BkwController : ControllerBase
+    public class TestController : ControllerBase
     {
         // GET api/sample
         [HttpGet]
