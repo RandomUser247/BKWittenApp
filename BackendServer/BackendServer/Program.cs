@@ -7,6 +7,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ContentDBContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("ContentDB")));
 
+// Add Controller for API
+builder.Services.AddControllers();
+
 // Add services to the container.
 builder.Services.AddRazorPages();
 
@@ -22,6 +25,12 @@ using (var scope = app.Services.CreateScope())
         dbContext.Database.Migrate();
         dbContext.SaveChanges();
     }
+}
+
+// Activate HTTP-Request-Pipeline
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
 }
 
 // Configure the HTTP request pipeline.
@@ -41,5 +50,7 @@ app.UseRouting();
 app.UseAuthorization();
 
 app.MapRazorPages();
+
+app.MapControllers();  // Important for API-Endpoints!
 
 app.Run();
