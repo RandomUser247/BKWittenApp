@@ -9,14 +9,47 @@
     <ScrollView>
         <VerticalStackLayout>
             <Label>
-                I am the Main Page
+                
             </Label>
             
             <!-- Textfeld für die Suche -->
-            <Frame Margin="30,0" CornerRadius="10" BorderColor="Gray" Padding="0">
+            <Frame Margin="30,30" CornerRadius="10" BorderColor="Gray" Padding="0">
                 <Entry Placeholder="suchen..." 
                        BackgroundColor="Transparent"
                        Visual="Default" />
+            </Frame>
+
+            <!-- Erster Frame mit Bild, Titel und Textkörper -->
+            <Frame Margin="30,10" CornerRadius="10" BorderColor="Gray" Padding="10">
+                <HorizontalStackLayout>
+                    <Image Source="image1.png" WidthRequest="50" HeightRequest="50" Margin="0,0,10,0" />
+                    <VerticalStackLayout>
+                        <Label Text="Titel 1" FontAttributes="Bold" FontSize="Medium" />
+                        <Label Text="Dies ist der Textkörper für den ersten Frame." FontSize="Small" LineBreakMode="WordWrap" />
+                    </VerticalStackLayout>
+                </HorizontalStackLayout>
+            </Frame>
+
+            <!-- Zweiter Frame mit Bild, Titel und Textkörper -->
+            <Frame Margin="30,10" CornerRadius="10" BorderColor="Gray" Padding="10">
+                <HorizontalStackLayout>
+                    <Image Source="image2.png" WidthRequest="50" HeightRequest="50" Margin="0,0,10,0" />
+                    <VerticalStackLayout>
+                        <Label Text="Titel 2" FontAttributes="Bold" FontSize="Medium" />
+                        <Label Text="Dies ist der Textkörper für den zweiten Frame." FontSize="Small" LineBreakMode="WordWrap"  />
+                    </VerticalStackLayout>
+                </HorizontalStackLayout>
+            </Frame>
+
+            <!-- Dritter Frame mit Bild, Titel und Textkörper -->
+            <Frame Margin="30,10" CornerRadius="10" BorderColor="Gray" Padding="10">
+                <HorizontalStackLayout>
+                    <Image Source="image3.png" WidthRequest="50" HeightRequest="50" Margin="0,0,10,0" />
+                    <VerticalStackLayout>
+                        <Label Text="Titel 3" FontAttributes="Bold" FontSize="Medium" />
+                        <Label Text="Dies ist der Textkörper für den dritten Frame." FontSize="Small" LineBreakMode="WordWrap"  />
+                    </VerticalStackLayout>
+                </HorizontalStackLayout>
             </Frame>
 
         </VerticalStackLayout>

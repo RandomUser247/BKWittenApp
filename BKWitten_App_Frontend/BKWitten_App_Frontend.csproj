@@ -61,6 +61,9 @@
 	  <None Remove="Resources\Images\Buildingplan.jpg" />
 	  <None Remove="Resources\Images\frage.png" />
 	  <None Remove="Resources\Images\house.png" />
+	  <None Remove="Resources\Images\image1.png" />
+	  <None Remove="Resources\Images\image2.png" />
+	  <None Remove="Resources\Images\image3.png" />
 	  <None Remove="Resources\Images\kalendertage.png" />
 	  <None Remove="Resources\Images\kartenpin.png" />
 	  <None Remove="Resources\Images\picpeople.png" />
