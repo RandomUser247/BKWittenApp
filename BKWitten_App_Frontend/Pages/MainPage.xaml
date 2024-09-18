@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:BKWitten_App_Frontend.Pages"
+             x:Class="BKWitten_App_Frontend.Pages.MainPage"
+             Title="BKWInfo"
+             Background="Lavender">
+
+    <ScrollView>
+        <VerticalStackLayout>
+            <Label>
+                I am the Main Page
+            </Label>
+            
+            <!-- Textfeld für die Suche -->
+            <Frame Margin="30,0" CornerRadius="10" BorderColor="Gray" Padding="0">
+                <Entry Placeholder="suchen..." 
+                       BackgroundColor="Transparent"
+                       Visual="Default" />
+            </Frame>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
