@@ -14,63 +14,73 @@ namespace BackendServer.Pages.Account
     {
         private readonly ContentDBContext _context;
 
+        // Constructor for injecting ContentDBContext into the LoginModel
         public LoginModel(ContentDBContext context)
         {
             _context = context;
         }
 
+        // The InputModel contains the fields that users need to fill in on the login page
         [BindProperty]
         public InputModel Input { get; set; }
 
+        // Model for handling user input (Email and Password) with validation attributes
         public class InputModel
         {
-            [Required]
-            [EmailAddress]
+            [Required] // Ensures that the email field is filled out
+            [EmailAddress] // Ensures that the input is a valid email address
             public string Email { get; set; }
 
-            [Required]
-            [DataType(DataType.Password)]
+            [Required] // Ensures that the password field is filled out
+            [DataType(DataType.Password)] // Marks the field as a password type (for HTML rendering)
             public string Password { get; set; }
         }
 
+        // Handles the post request when the login form is submitted
         public async Task<IActionResult> OnPostAsync()
         {
+            // Check if the submitted form data is valid based on the InputModel attributes
             if (!ModelState.IsValid)
             {
-                return Page();
+                return Page(); // Return to the login page if the form is invalid
             }
 
-            var hashedPassword = PasswordHelper.HashPassword(Input.Password);
-
+            // Attempt to find the user by their email in the database
             var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == Input.Email && u.PassHash == hashedPassword);
+                .FirstOrDefaultAsync(u => u.Email == Input.Email);
 
-            if (user == null)
+            // If user is not found or password verification fails, add a model error and return to the login page
+            if (user == null || !PasswordHelper.VerifyPassword(Input.Password, user.PassHash))
             {
                 ModelState.AddModelError(string.Empty, "Invalid login attempt.");
                 return Page();
             }
 
-            // Create claims (user ID, email, roles, etc.)
+            // Create a list of claims, which will be used to identify the user in the system
+            // Claims contain user-specific information like UserID, Email, and roles (IsAdmin, IsTeacher)
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()),
-                new Claim(ClaimTypes.Name, user.Email),
-                new Claim("FirstName", user.FirstName),
-                new Claim("IsAdmin", user.IsAdmin.ToString()),
-                new Claim("IsTeacher", user.IsTeacher.ToString())
+                new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()), // Unique user ID
+                new Claim(ClaimTypes.Name, user.Email), // User email
+                new Claim("FirstName", user.FirstName), // Custom claim for user's first name
+                new Claim("IsAdmin", user.IsAdmin.ToString()), // Custom claim for admin role
+                new Claim("IsTeacher", user.IsTeacher.ToString()) // Custom claim for teacher role
             };
 
-            // Create a ClaimsIdentity and authenticate the user
+            // Create a ClaimsIdentity with the claims, using the cookie authentication scheme
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+            // AuthenticationProperties is used to configure authentication settings
             var authProperties = new AuthenticationProperties
             {
-                IsPersistent = true // Set to true if you want the session to persist across browser sessions
+                IsPersistent = true // Keeps the user logged in even after the browser is closed
             };
 
+            // Sign the user in by creating an authenticated session with the provided claims and properties
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
 
-            return RedirectToPage("/Index"); // Redirect after successful login
+            // Redirect to the homepage ("/Index") after successful login
+            return RedirectToPage("/Index");
         }
     }
 }

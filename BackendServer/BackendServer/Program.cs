@@ -4,85 +4,105 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
-
-
+using BCrypt.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Register the DbContext with dependency injection
 builder.Services.AddDbContext<ContentDBContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("ContentDB")));
+// This sets up the connection to the SQLite database using the connection string from the configuration file.
 
-// Add cookie authentication
+
+// Add cookie authentication to the app
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath = "/Login"; // Redirect to login page if not authenticated
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(60); // Set session expiration time
-        options.SlidingExpiration = true; // Refresh expiration time on each request
+        options.LoginPath = "/Login"; // Redirects to the login page if the user is not authenticated
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(60); // Sets the session to expire after 60 minutes
+        options.SlidingExpiration = true; // Resets the expiration timer with each request
     });
-    builder.Services.AddAuthorization(options =>
-    {
-        // Example policy for teachers
-        options.AddPolicy("RequireTeacherRole", policy =>
-            policy.RequireClaim("isTeacher", "True"));
 
-        // Add more policies as needed, e.g., for admins
-        options.AddPolicy("RequireAdminRole", policy =>
-            policy.RequireClaim("isAdmin", "True"));
-    });
-    // Add services to the container.
-    builder.Services.AddRazorPages();
+// Add authorization policies
+builder.Services.AddAuthorization(options =>
+{
+    // Policy that requires the user to have the claim "isTeacher" set to "True"
+    options.AddPolicy("RequireTeacherRole", policy =>
+        policy.RequireClaim("isTeacher", "True"));
 
-    var app = builder.Build();
+    // Policy that requires the user to have the claim "isAdmin" set to "True"
+    options.AddPolicy("RequireAdminRole", policy =>
+        policy.RequireClaim("isAdmin", "True"));
+});
+// You can define different policies here that control access to certain areas based on user claims.
 
-    // Seed the database
-    using (var scope = app.Services.CreateScope())
+// Add services to the container, including Razor Pages for handling UI and server-side code
+builder.Services.AddRazorPages();
+
+var app = builder.Build();
+
+// Seed the database with initial data, if necessary
+using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<ContentDBContext>();
 
-    // Ensure the database is created
+    // Ensure the database is created before seeding data
     context.Database.EnsureCreated();
 
-    // Seed data
+    // Call the SeedDataAsync method to populate the database with initial data
     await context.SeedDataAsync();
 }
 
-// Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline
+
 if (!app.Environment.IsDevelopment())
 {
+    // In production, use an exception handler to redirect users to a custom error page
     app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+
+    // Enforce HTTP Strict Transport Security (HSTS) to secure communication in production
     app.UseHsts();
 }
+// Redirects HTTP requests to HTTPS for secure communication
+app.UseHttpsRedirection(); 
 
-app.UseHttpsRedirection();
+// Enables serving of static files like CSS, JS, and images
+app.UseStaticFiles(); 
 
-app.UseStaticFiles();
+// Sets up routing for the application
+app.UseRouting(); 
 
-app.UseRouting();
-
+ // Enable authentication middleware to handle login and session tracking
 app.UseAuthentication();
 
-app.UseAuthorization();
+// Enable authorization middleware to enforce access control
+app.UseAuthorization(); 
 
-app.MapRazorPages();
+// Map Razor Pages (UI) to be handled by the routing system
+app.MapRazorPages(); 
 
+// Run the application
 app.Run();
+
+// Helper class for password hashing and verification using bcrypt
 public static class PasswordHelper
 {
-    public static string HashPassword(string password)
+    // Generate a salt for password hashing using bcrypt
+    public static string GenerateSalt(int workFactor = 12)
     {
-        using (var sha256 = SHA256.Create())
-        {
-            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-            var builder = new StringBuilder();
-            foreach (var b in bytes)
-            {
-                builder.Append(b.ToString("x2"));
-            }
-            return builder.ToString();
-        }
+        return BCrypt.Net.BCrypt.GenerateSalt(workFactor); // Work factor determines the complexity of the hash
+    }
+
+    // Hash a password using bcrypt with the generated salt
+    public static string HashPassword(string password, string salt)
+    {
+        return BCrypt.Net.BCrypt.HashPassword(password, salt);
+    }
+
+    // Verify a password against a stored hash
+    public static bool VerifyPassword(string password, string storedHash)
+    {
+        return BCrypt.Net.BCrypt.Verify(password, storedHash);
     }
 }

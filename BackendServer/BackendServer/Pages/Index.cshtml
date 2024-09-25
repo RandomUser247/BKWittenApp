@@ -122,8 +122,11 @@
 
                     <div class="mb-3">
                         <label for="postImages" class="form-label">Images</label>
-                        <input type="file" id="postImages" asp-for="PostImages" class="form-control" multiple accept="image/*" />
+                        <input type="file" id="postImages" asp-for="PostImages" class="form-control" multiple accept="image/*" onchange="previewImages(event)" />
                     </div>
+
+                    <!-- Image Preview Section -->
+                    <div id="imagePreview" class="row mt-3"></div>
 
                     <div class="mb-3">
                         <label for="imageAltText" class="form-label">Image Alt Text</label>
@@ -221,6 +224,18 @@
 
                     <button type="submit" class="btn btn-primary">Save Changes</button>
                 </form>
+                <!-- Display existing images -->
+                @if (Model.EditedPost != null && Model.EditedPost.Media != null && Model.EditedPost.Media.Any(m => !m.IsVideo))
+                {
+                    <div class="row mt-3">
+                        @foreach (var image in Model.EditedPost.Media.Where(m => !m.IsVideo))
+                        {
+                            <div class="col-md-3 mb-2">
+                                <img src="@image.FilePath" class="img-fluid rounded" alt="@image.AltText" />
+                            </div>
+                        }
+                    </div>
+                }
             </div>
         </div>
     </div>
@@ -365,6 +380,58 @@
 
             $('#editEventModal').modal('show');
         }
+        function previewImages(event) {
+            var imagePreview = document.getElementById('imagePreview');
+            imagePreview.innerHTML = ""; // Clear existing previews
+
+            var files = event.target.files;
+            for (let i = 0; i < files.length; i++) {
+                let file = files[i];
+                let reader = new FileReader();
+
+                reader.onload = function (e) {
+                    let imgDiv = document.createElement("div");
+                    imgDiv.classList.add("col-md-3", "mb-2");
+
+                    let img = document.createElement("img");
+                    img.src = e.target.result;
+                    img.classList.add("img-fluid", "rounded");
+                    img.alt = file.name;
+
+                    imgDiv.appendChild(img);
+                    imagePreview.appendChild(imgDiv);
+                };
+
+                reader.readAsDataURL(file);
+            }
+        } 
+
+        function previewEditImages(event) {
+            var imagePreview = document.getElementById('editImagePreview');
+        imagePreview.innerHTML = ""; // Clear existing previews
+
+        var files = event.target.files;
+        for (let i = 0; i < files.length; i++) {
+            let file = files[i];
+        let reader = new FileReader();
+
+        reader.onload = function(e) {
+            let imgDiv = document.createElement("div");
+        imgDiv.classList.add("col-md-3", "mb-2");
+
+        let img = document.createElement("img");
+        img.src = e.target.result;
+        img.classList.add("img-fluid", "rounded");
+        img.alt = file.name;
+
+        imgDiv.appendChild(img);
+        imagePreview.appendChild(imgDiv);
+                };
+
+        reader.readAsDataURL(file);
+            }
+        }
+
     </script>
 
 }

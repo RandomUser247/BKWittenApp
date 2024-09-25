@@ -82,6 +82,17 @@ namespace BackendServer.Pages
             NewPost.IsPending = !currentUser.IsTeacher; // Posts are marked pending if the user isn't a teacher.
             _context.Posts.Add(NewPost); // Add the new post to the database.
 
+            try
+            {
+                await _context.SaveChangesAsync(); // Save the post to the database first to generate the PostID.
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, "An error occurred while saving the post: " + ex.Message);
+                await ReloadDataAsync();
+                return Page(); // Show error message and reload the page in case of failure.
+            }
+
             // Handle image uploads, if any.
             if (PostImages != null && PostImages.Count > 0)
             {
@@ -126,13 +137,15 @@ namespace BackendServer.Pages
         }
 
         // Method to handle post editing.
-        // Method to handle post editing.
         public async Task<IActionResult> OnPostEditPostAsync()
         {
-            if (!ModelState.IsValid)
+            ModelState.Clear(); // Clear any previous validation state.
+
+            // Validate only the NewPost model.
+            if (!TryValidateModel(EditedPost, nameof(EditedPost)))
             {
                 await ReloadDataAsync();
-                return Page();
+                return Page(); // Reload the page if validation fails.
             }
 
             var post = await _context.Posts.FindAsync(EditedPost.PostID); // Find the post by ID.

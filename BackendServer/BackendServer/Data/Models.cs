@@ -9,11 +9,15 @@ namespace ContentDB.Migrations
     public class User
     {
         public int UserID { get; set; }
+        [Required]
         public string FirstName { get; set; }
+        [Required]
         public string LastName { get; set; }
+        [Required]
         public string Email { get; set; }
         public bool IsTeacher { get; set; }
         public bool IsAdmin { get; set; }
+        [Required]
         public string PassHash { get; set; }
         public string TelNr { get; set; }
     }
@@ -29,9 +33,12 @@ namespace ContentDB.Migrations
         [Required(ErrorMessage = "Description is required")]
         public string Description { get; set; }
 
-        public DateTime CreationDate { get; set; }  // Set this in your page handler
+        public DateTime CreationDate { get; set; } 
 
-        public DateTime? PublishDate { get; set; }  // Nullable, and set server-side when post is published
+        public DateTime? PublishDate { get; set; }  
+
+        [ValidateNever]
+        public int Likes { get; set; } = 0;
         public bool IsPending { get; set; }
         [BindNever]
         public int UserID { get; set; }
@@ -39,6 +46,9 @@ namespace ContentDB.Migrations
         [BindNever]
         [ValidateNever]
         public User User { get; set; }
+        [ValidateNever]
+        public ICollection<Media> Media { get; set; }
+
     }
 
 
@@ -58,6 +68,7 @@ namespace ContentDB.Migrations
         // Foreign key to Post
         public int PostID { get; set; }
         public Post Post { get; set; }
+
     }
 
 
@@ -142,10 +153,9 @@ namespace ContentDB.Migrations
                     Email = "test.user@example.com",
                     IsTeacher = false,
                     IsAdmin = false,
-                    PassHash = PasswordHelper.HashPassword("testhash"),
+                    PassHash = PasswordHelper.HashPassword("testhash", PasswordHelper.GenerateSalt()),
                     TelNr = "123456789"
                 }); 
-                await SaveChangesAsync();
             }
 
             // Seed Teacher-User
@@ -159,10 +169,9 @@ namespace ContentDB.Migrations
                     Email = "test.teacher@example.com",
                     IsTeacher = true,
                     IsAdmin = false,
-                    PassHash = PasswordHelper.HashPassword("testhash"),
+                    PassHash = PasswordHelper.HashPassword("testhash", PasswordHelper.GenerateSalt()),
                     TelNr = "123456789"
                 });
-                await SaveChangesAsync();
             }
 
             // Seed Admin-User
@@ -176,10 +185,9 @@ namespace ContentDB.Migrations
                     Email = "test.admin@example.com",
                     IsTeacher = true,
                     IsAdmin = true,
-                    PassHash = PasswordHelper.HashPassword("testhash"),
+                    PassHash = PasswordHelper.HashPassword("testhash", PasswordHelper.GenerateSalt()),
                     TelNr = "123456789"
                 });
-                await SaveChangesAsync();
             }
 
             // Seed Post
@@ -194,7 +202,6 @@ namespace ContentDB.Migrations
                     PublishDate = DateTime.Now,
                     UserID = 1
                 });
-                await SaveChangesAsync();
             }
 
             // Seed Media
@@ -208,7 +215,6 @@ namespace ContentDB.Migrations
                     FilePath = "images/sample.jpg",
                     PostID = 1
                 });
-                await SaveChangesAsync();
             }
 
             // Seed Event
@@ -223,8 +229,8 @@ namespace ContentDB.Migrations
                     EndDate = DateTime.Now.AddDays(10),
                     UserID = 1
                 });
-                await SaveChangesAsync();
             }
+            await SaveChangesAsync();
         }
 
     }
