@@ -26,13 +26,12 @@ namespace ContentDB.Migrations
         [Required(ErrorMessage = "Title is required")]
         public string Title { get; set; }
 
-
         [Required(ErrorMessage = "Description is required")]
         public string Description { get; set; }
 
-        public DateTime CreationDate { get; set; } = DateTime.Now;
+        public DateTime CreationDate { get; set; }  // Set this in your page handler
 
-        public DateTime PublishDate { get; set; } = DateTime.Now;
+        public DateTime? PublishDate { get; set; }  // Nullable, and set server-side when post is published
 
         [BindNever]
         public int UserID { get; set; }
@@ -43,12 +42,17 @@ namespace ContentDB.Migrations
     }
 
 
+
     // Media Entity
     public class Media
     {
         public int MediaID { get; set; }
-        public string AltText { get; set; }
+        [Required(ErrorMessage = "Alt text is required")]
+        public string AltText { get; set; }  
+
         public bool IsVideo { get; set; }
+
+        [Required(ErrorMessage = "File path is required")]
         public string FilePath { get; set; }
 
         // Foreign key to Post
@@ -56,19 +60,55 @@ namespace ContentDB.Migrations
         public Post Post { get; set; }
     }
 
+
     // Event Entity
     public class Event
     {
         public int EventID { get; set; }
+
+        [Required(ErrorMessage = "Event title is required")]
         public string Title { get; set; }
+
         public string Description { get; set; }
+
+        [Required(ErrorMessage = "Start date is required")]
         public DateTime StartDate { get; set; }
+
+        [Required(ErrorMessage = "End date is required")]
+        [DateGreaterThan("StartDate", ErrorMessage = "End date must be after start date")]
         public DateTime EndDate { get; set; }
-        public string JobDescription { get; set; }
 
         // Foreign key to User
+        [BindNever]
         public int UserID { get; set; }
+
+        [BindNever]
+        [ValidateNever]
         public User User { get; set; }
+    }
+
+    public class DateGreaterThanAttribute : ValidationAttribute
+    {
+        private readonly string _startDatePropertyName;
+
+        public DateGreaterThanAttribute(string startDatePropertyName)
+        {
+            _startDatePropertyName = startDatePropertyName;
+        }
+
+        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+        {
+            var endDate = (DateTime?)value;
+            var startDateProperty = validationContext.ObjectType.GetProperty(_startDatePropertyName);
+            var startDate = (DateTime?)startDateProperty?.GetValue(validationContext.ObjectInstance);
+
+            if (endDate.HasValue && startDate.HasValue && endDate.Value <= startDate.Value)
+            {
+                return new ValidationResult(ErrorMessage ?? "End date must be greater than start date");
+            }
+
+            return ValidationResult.Success;
+        }
     }
 
     // DbContext for SQLite
@@ -181,7 +221,6 @@ namespace ContentDB.Migrations
                     Description = "This is a sample event.",
                     StartDate = DateTime.Now.AddDays(7),
                     EndDate = DateTime.Now.AddDays(10),
-                    JobDescription = "Volunteer work",
                     UserID = 1
                 });
                 await SaveChangesAsync();

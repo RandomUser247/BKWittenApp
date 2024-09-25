@@ -1,9 +1,178 @@
 ﻿@page
 @model IndexModel
-@{
-    ViewData["Title"] = "Home page";
+@inject IUrlHelper Url
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Left side: Scrollable list of posts -->
+        <div class="col-md-8">
+            <h3>Recent Posts</h3>
+            <div class="list-group overflow-auto" style="max-height: 500px;">
+                @foreach (var post in Model.RecentPosts)
+                {
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5>@post.Title</h5>
+                            <p>@post.Description</p>
+                            <small class="text-muted">Created by: @post.User.FirstName @post.User.LastName</small>
+                        </div>
+                        <div>
+                            <form method="post" class="d-inline">
+                                <button class="btn btn-primary btn-sm" formaction="@Url.Page("Dashboard", "EditPost", new { postId = post.PostID })">Edit</button>
+                            </form>
+                            <form method="post" class="d-inline">
+                                <button class="btn btn-danger btn-sm" formaction="@Url.Page("Dashboard", "DeletePost", new { postId = post.PostID })">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Right side: Create new post and pending posts -->
+        <div class="col-md-4">
+            <!-- Validation Summary for Post -->
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <div class="mb-3">
+                <button class="btn btn-success btn-block" data-bs-toggle="modal" data-bs-target="#createPostModal">Create New Post</button>
+            </div>
+
+            <h3>Pending Posts</h3>
+            <ul class="list-group mb-3">
+                @foreach (var post in Model.PendingPosts)
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>@post.Title</span>
+                        <form method="post" class="d-inline">
+                            <button class="btn btn-warning btn-sm" type="submit" formaction="@Url.Page("Dashboard", "ConfirmPost", new { postId = post.PostID })">Confirm</button>
+                        </form>
+                    </li>
+                }
+            </ul>
+
+            <!-- Calendar -->
+            <h3>Event Calendar</h3>
+            <div class="calendar bg-light p-3">
+                <div id="calendar"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Post Modal -->
+<div class="modal fade" id="createPostModal" tabindex="-1" aria-labelledby="createPostModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createPostModalLabel">Create New Post</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" asp-page-handler="CreatePost">
+                    <div class="mb-3">
+                        <label for="postTitle" class="form-label">Title</label>
+                        <input type="text" id="postTitle" asp-for="NewPost.Title" class="form-control" placeholder="Post Title" />
+                        <span asp-validation-for="NewPost.Title" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="postDescription" class="form-label">Description</label>
+                        <textarea id="postDescription" asp-for="NewPost.Description" class="form-control" placeholder="Post Description"></textarea>
+                        <span asp-validation-for="NewPost.Description" class="text-danger"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Event Modal -->
+<div class="modal fade" id="createEventModal" tabindex="-1" aria-labelledby="createEventModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createEventModalLabel">Create New Event</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" asp-page-handler="CreateEvent">
+                    <div class="mb-3">
+                        <label for="eventTitle" class="form-label">Event Title</label>
+                        <input type="text" id="eventTitle" name="NewEvent.Title" asp-for="NewEvent.Title" class="form-control" placeholder="Event Title" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="eventStartDate" class="form-label">Start Date & Time</label>
+                        <input type="datetime-local" id="eventStartDate" name="NewEvent.StartDate" asp-for="NewEvent.StartDate" class="form-control" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="eventEndDate" class="form-label">End Date & Time</label>
+                        <input type="datetime-local" id="eventEndDate" name="NewEvent.EndDate" asp-for="NewEvent.EndDate" class="form-control" required />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Create Event</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var calendarEl = document.getElementById('calendar');
+
+            // Pass events to the FullCalendar as JSON
+            var events = @Html.Raw(Json.Serialize(Model.Events.Select(e => new
+            {
+                title = e.Title,
+                start = e.StartDate.ToString("yyyy-MM-ddTHH:mm:ss"),
+                end = e.EndDate.ToString("yyyy-MM-ddTHH:mm:ss")
+            })));
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',  // Default view
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'  // Switch between Month, Week, and Day views
+                },
+                events: events,
+                navLinks: true,
+                editable: true,
+                height: 'auto',
+                dateClick: function (info) {
+                    // Format date string for datetime-local input
+                    var dateStr = info.dateStr + 'T00:00';  // Pre-fill with the clicked date and default time
+
+                    // Pre-fill the start date in the "Create Event" modal
+                    document.getElementById('eventStartDate').value = dateStr;
+
+                    // Clear the end date for new event entry
+                    document.getElementById('eventEndDate').value = '';
+
+                    // Open the event creation modal
+                    $('#createEventModal').modal('show');
+                },
+                eventMouseEnter: function (info) {
+                    // Show tooltip when hovering over an event
+                    var tooltip = new Tooltip(info.el, {
+                        title: info.event.title,
+                        placement: 'top',
+                        trigger: 'hover',
+                        container: 'body'
+                    });
+                }
+            });
+
+            calendar.render();
+        });
+    </script>
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-</div>
+
