@@ -7,9 +7,19 @@
         <!-- Left side: Scrollable list of posts -->
         <div class="col-md-8">
             <h3>Recent Posts</h3>
-            <div class="list-group overflow-auto" style="max-height: 500px;">
+            <div class="list-group overflow-auto" style="max-height: 800px;">
                 @foreach (var post in Model.RecentPosts)
                 {
+                    // Check if the user has the required claim or is the post author
+                    bool isTeacher = User.HasClaim("IsTeacher", "True");
+                    bool isAdmin = User.HasClaim("IsAdmin", "True");
+                    bool isAuthor = post.User.UserID.ToString() == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+                    // Skip the post if the user is not an author, teacher, or admin
+                    if (!isTeacher && !isAdmin && !isAuthor)
+                    {
+                        continue;
+                    }
                     <div class="list-group-item d-flex justify-content-between align-items-center">
                         <div>
                             <h5>@post.Title</h5>
@@ -17,16 +27,41 @@
                             <small class="text-muted">Created by: @post.User.FirstName @post.User.LastName</small>
                         </div>
                         <div>
+                            <button class="btn btn-primary btn-sm" type="button"
+                                    onclick='openEditPostModal(@Json.Serialize(post))'>
+
+                                Edit
+                            </button>
                             <form method="post" class="d-inline">
-                                <button class="btn btn-primary btn-sm" formaction="@Url.Page("Dashboard", "EditPost", new { postId = post.PostID })">Edit</button>
+                                <button class="btn btn-danger btn-sm" formaction="@Url.Page("Index", "DeletePost", new { postId = post.PostID })">Delete</button>
                             </form>
-                            <form method="post" class="d-inline">
-                                <button class="btn btn-danger btn-sm" formaction="@Url.Page("Dashboard", "DeletePost", new { postId = post.PostID })">Delete</button>
-                            </form>
+
                         </div>
                     </div>
                 }
             </div>
+
+            <!-- Pagination Control -->
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mt-3">
+                    <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link" href="@Url.Page("Index", new { currentPage = Model.CurrentPage - 1 })" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    @for (var i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
+                            <a class="page-link" href="@Url.Page("Index", new { currentPage = i })">@i</a>
+                        </li>
+                    }
+                    <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                        <a class="page-link" href="@Url.Page("Index", new { currentPage = Model.CurrentPage + 1 })" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
         </div>
 
         <!-- Right side: Create new post and pending posts -->
@@ -37,7 +72,9 @@
             <div class="mb-3">
                 <button class="btn btn-success btn-block" data-bs-toggle="modal" data-bs-target="#createPostModal">Create New Post</button>
             </div>
-
+            @if(User.HasClaim("IsTeacher", "True"))
+            {
+                
             <h3>Pending Posts</h3>
             <ul class="list-group mb-3">
                 @foreach (var post in Model.PendingPosts)
@@ -45,7 +82,7 @@
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <span>@post.Title</span>
                         <form method="post" class="d-inline">
-                            <button class="btn btn-warning btn-sm" type="submit" formaction="@Url.Page("Dashboard", "ConfirmPost", new { postId = post.PostID })">Confirm</button>
+                            <button class="btn btn-warning btn-sm" type="submit" formaction="@Url.Page("Index", "ConfirmPost", new { postId = post.PostID })">Confirm</button>
                         </form>
                     </li>
                 }
@@ -56,6 +93,7 @@
             <div class="calendar bg-light p-3">
                 <div id="calendar"></div>
             </div>
+            }
         </div>
     </div>
 </div>
@@ -69,7 +107,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form method="post" asp-page-handler="CreatePost">
+                <form method="post" asp-page-handler="CreatePost" enctype="multipart/form-data">
                     <div class="mb-3">
                         <label for="postTitle" class="form-label">Title</label>
                         <input type="text" id="postTitle" asp-for="NewPost.Title" class="form-control" placeholder="Post Title" />
@@ -80,6 +118,22 @@
                         <label for="postDescription" class="form-label">Description</label>
                         <textarea id="postDescription" asp-for="NewPost.Description" class="form-control" placeholder="Post Description"></textarea>
                         <span asp-validation-for="NewPost.Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="postImages" class="form-label">Images</label>
+                        <input type="file" id="postImages" asp-for="PostImages" class="form-control" multiple accept="image/*" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="imageAltText" class="form-label">Image Alt Text</label>
+                        <input type="text" id="imageAltText" asp-for="ImageAltText" class="form-control" placeholder="Image Alt Text" />
+                        <span asp-validation-for="ImageAltText" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="postVideo" class="form-label">Video</label>
+                        <input type="file" id="postVideo" asp-for="PostVideo" class="form-control" accept="video/*" />
                     </div>
 
                     <button type="submit" class="btn btn-primary">Create</button>
@@ -105,6 +159,11 @@
                     </div>
 
                     <div class="mb-3">
+                        <label for="eventDescription" class="form-label">Description</label>
+                        <textarea id="eventDescription" name="NewEvent.Description" asp-for="NewEvent.Description" class="form-control" placeholder="Event Description" required></textarea>
+                    </div>
+
+                    <div class="mb-3">
                         <label for="eventStartDate" class="form-label">Start Date & Time</label>
                         <input type="datetime-local" id="eventStartDate" name="NewEvent.StartDate" asp-for="NewEvent.StartDate" class="form-control" required />
                     </div>
@@ -115,6 +174,92 @@
                     </div>
 
                     <button type="submit" class="btn btn-primary">Create Event</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Post Modal -->
+<div class="modal fade" id="editPostModal" tabindex="-1" aria-labelledby="editPostModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editPostModalLabel">Edit Post</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" asp-page-handler="EditPost" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="EditedPost.PostID" />
+                    <div class="mb-3">
+                        <label for="editPostTitle" class="form-label">Title</label>
+                        <input type="text" id="editPostTitle" asp-for="EditedPost.Title" class="form-control" placeholder="Post Title" />
+                        <span asp-validation-for="EditedPost.Title" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editPostDescription" class="form-label">Description</label>
+                        <textarea id="editPostDescription" asp-for="EditedPost.Description" class="form-control" placeholder="Post Description"></textarea>
+                        <span asp-validation-for="EditedPost.Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editPostImages" class="form-label">Images</label>
+                        <input type="file" id="editPostImages" asp-for="PostImages" class="form-control" multiple accept="image/*" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editImageAltText" class="form-label">Image Alt Text</label>
+                        <input type="text" id="editImageAltText" asp-for="ImageAltText" class="form-control" placeholder="Image Alt Text" />
+                        <span asp-validation-for="ImageAltText" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editPostVideo" class="form-label">Video</label>
+                        <input type="file" id="editPostVideo" asp-for="PostVideo" class="form-control" accept="video/*" />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Edit Event Modal -->
+<div class="modal fade" id="editEventModal" tabindex="-1" aria-labelledby="editEventModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editEventModalLabel">Edit Event</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" asp-page-handler="EditEvent">
+                    <input type="hidden" id="editEventID" name="EditedEvent.EventID" />
+
+                    <div class="mb-3">
+                        <label for="eventTitle" class="form-label">Event Title</label>
+                        <input type="text" id="editEventTitle" name="EditedEvent.Title" class="form-control" placeholder="Event Title" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="eventDescription" class="form-label">Description</label>
+                        <textarea id="editEventDescription" name="EditedEvent.Description" class="form-control" placeholder="Event Description" required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="eventStartDate" class="form-label">Start Date & Time</label>
+                        <input type="datetime-local" id="editEventStartDate" name="EditedEvent.StartDate" class="form-control" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="eventEndDate" class="form-label">End Date & Time</label>
+                        <input type="datetime-local" id="editEventEndDate" name="EditedEvent.EndDate" class="form-control" required />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
                 </form>
             </div>
         </div>
@@ -132,47 +277,96 @@
             {
                 title = e.Title,
                 start = e.StartDate.ToString("yyyy-MM-ddTHH:mm:ss"),
-                end = e.EndDate.ToString("yyyy-MM-ddTHH:mm:ss")
+                end = e.EndDate.ToString("yyyy-MM-ddTHH:mm:ss"),
+                extendedProps = new
+                {
+                    description = e.Description,  // this is an extra property
+                }
             })));
 
+
             var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',  // Default view
+                initialView: 'dayGridMonth',
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay'  // Switch between Month, Week, and Day views
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
-                events: events,
+                events: events, // Your events data here
                 navLinks: true,
                 editable: true,
                 height: 'auto',
                 dateClick: function (info) {
-                    // Format date string for datetime-local input
-                    var dateStr = info.dateStr + 'T00:00';  // Pre-fill with the clicked date and default time
-
-                    // Pre-fill the start date in the "Create Event" modal
+                    // Date click logic for creating a new event
+                    var dateStr = info.dateStr + 'T00:00';
                     document.getElementById('eventStartDate').value = dateStr;
-
-                    // Clear the end date for new event entry
                     document.getElementById('eventEndDate').value = '';
 
-                    // Open the event creation modal
+                    // Open the create event modal
                     $('#createEventModal').modal('show');
+                },
+                eventClick: function (info) {
+
+                    console.log(info);
+                    // Open the Edit Event modal
+                    $('#editEventModal').modal('show');
+                    // Populate the Edit Event modal with event data
+                    document.getElementById('editEventID').value = info.event.id;
+                    document.getElementById('editEventTitle').value = info.event.title;
+                    document.getElementById('editEventDescription').value = info.event.extendedProps.description;
+                    document.getElementById('editEventStartDate').value = info.event.start.toISOString().slice(0, 16);
+                    document.getElementById('editEventEndDate').value = info.event.end ? info.event.end.toISOString().slice(0, 16) : '';
                 },
                 eventMouseEnter: function (info) {
                     // Show tooltip when hovering over an event
-                    var tooltip = new Tooltip(info.el, {
+                    var tooltip = new bootstrap.Tooltip(info.el, {
                         title: info.event.title,
                         placement: 'top',
                         trigger: 'hover',
                         container: 'body'
                     });
+                    info.el.tooltip = tooltip;
+                },
+                eventMouseLeave: function (info) {
+                    // Destroy the tooltip on mouse leave
+                    if (info.el.tooltip) {
+                        setTimeout(function () {
+                            if (info.el.tooltip) {
+                                info.el.tooltip.dispose();
+                                info.el.tooltip = null; // Clear the reference
+                            }
+                        }, 1000); // 1000ms = 1 second
+                    }
                 }
             });
 
+
+
             calendar.render();
         });
+
+        function openEditPostModal(post) {
+            // Set the modal fields with the selected post data
+            document.getElementById('editPostTitle').value = post.title;
+            document.getElementById('editPostDescription').value = post.description;
+            document.getElementById('EditedPost_PostID').value = post.postID;
+
+            // Open the modal
+            $('#editPostModal').modal('show');
+        }
+        
+        function openEditEventModal(event) {
+            console.log(event.event);
+            // Set the modal fields with the selected event data
+            document.getElementById('editEventTitle').value = event.event.title;
+            document.getElementById('editEventDescription').value = event.event.description;
+            document.getElementById('editEventStartDate').value = event.event.start;
+            document.getElementById('editEventEndDate').value = event.event.end;
+
+            $('#editEventModal').modal('show');
+        }
     </script>
+
 }
 
 

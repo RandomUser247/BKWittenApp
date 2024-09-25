@@ -365,4 +365,12 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+
+
 /BackendServer/BackendServer/.idea
+
+.db*
+/BackendServer/BackendServer/wwwroot/uploads
+*.db-shm
+*.db-wal

@@ -32,7 +32,7 @@ namespace ContentDB.Migrations
         public DateTime CreationDate { get; set; }  // Set this in your page handler
 
         public DateTime? PublishDate { get; set; }  // Nullable, and set server-side when post is published
-
+        public bool IsPending { get; set; }
         [BindNever]
         public int UserID { get; set; }
 
@@ -132,7 +132,7 @@ namespace ContentDB.Migrations
         public async Task SeedDataAsync()
         {
             // Seed User
-            if (!Users.Any(u => u.Email == "test.user@example.com"))
+            if (!await Users.AsNoTracking().AnyAsync(u => u.Email == "test.user@example.com"))
             {
                 Users.Add(new User
                 {
@@ -149,7 +149,7 @@ namespace ContentDB.Migrations
             }
 
             // Seed Teacher-User
-            if (!Users.Any(u => u.Email == "test.teacher@example.com"))
+            if (!await Users.AsNoTracking().AnyAsync(u => u.Email == "test.teacher@example.com"))
             {
                 Users.Add(new User
                 {
@@ -166,7 +166,7 @@ namespace ContentDB.Migrations
             }
 
             // Seed Admin-User
-            if (!Users.Any(u => u.Email == "test.admin@example.com"))
+            if (!await Users.AsNoTracking().AnyAsync(u => u.Email == "test.admin@example.com"))
             {
                 Users.Add(new User
                 {

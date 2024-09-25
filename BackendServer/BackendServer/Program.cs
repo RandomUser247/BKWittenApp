@@ -21,14 +21,23 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.ExpireTimeSpan = TimeSpan.FromMinutes(60); // Set session expiration time
         options.SlidingExpiration = true; // Refresh expiration time on each request
     });
+    builder.Services.AddAuthorization(options =>
+    {
+        // Example policy for teachers
+        options.AddPolicy("RequireTeacherRole", policy =>
+            policy.RequireClaim("isTeacher", "True"));
 
-// Add services to the container.
-builder.Services.AddRazorPages();
+        // Add more policies as needed, e.g., for admins
+        options.AddPolicy("RequireAdminRole", policy =>
+            policy.RequireClaim("isAdmin", "True"));
+    });
+    // Add services to the container.
+    builder.Services.AddRazorPages();
 
-var app = builder.Build();
+    var app = builder.Build();
 
-// Seed the database
-using (var scope = app.Services.CreateScope())
+    // Seed the database
+    using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<ContentDBContext>();
