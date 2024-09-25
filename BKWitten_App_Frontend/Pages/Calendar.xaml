@@ -3,11 +3,19 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="BKWitten_App_Frontend.Pages.Calendar"
               xmlns:local="clr-namespace:BKWitten_App_Frontend.Pages"
+             xmlns:controls="clr-namespace:Plugin.Maui.Calendar.Controls;assembly=Plugin.Maui.Calendar" 
              Title="Kalender">
     <VerticalStackLayout>
         <Label 
             Text="Kalender"
             VerticalOptions="Center" 
             HorizontalOptions="Center" />
+
+        <controls:Calendar
+        Day="25"
+        Month="9"
+        Year="2024"
+        VerticalOptions="Fill"
+        HorizontalOptions="Fill" />
     </VerticalStackLayout>
 </ContentPage>
