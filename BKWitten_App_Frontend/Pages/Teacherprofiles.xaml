@@ -3,11 +3,35 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
               xmlns:local="clr-namespace:BKWitten_App_Frontend.Pages"
              x:Class="BKWitten_App_Frontend.Pages.Teacherprofiles"
-             Title="Lehrerprofile">
+             Title="Lehrerprofile"
+             Background="Lavender">
+    
     <VerticalStackLayout>
         <Label 
             Text="Lehrerprofile"
             VerticalOptions="Center" 
             HorizontalOptions="Center" />
+        
+        <Frame Margin="30,10" CornerRadius="10" BorderColor="Gray" Padding="10">
+            <HorizontalStackLayout>
+                <Image Source="picpeople.png" WidthRequest="50" HeightRequest="50" Margin="0,0,10,0" />
+                <VerticalStackLayout>
+                    <Label Text="O. Schmiemann" FontAttributes="Bold" FontSize="Medium" />
+                    <Label Text="O.Schmiemann@bkwitten.org" FontSize="Small" LineBreakMode="WordWrap" />
+                </VerticalStackLayout>
+            </HorizontalStackLayout>
+        </Frame>
+
+        <Frame Margin="30,10" CornerRadius="10" BorderColor="Gray" Padding="10">
+            <HorizontalStackLayout>
+                <Image Source="picpeople.png" WidthRequest="50" HeightRequest="50" Margin="0,0,10,0" />
+                <VerticalStackLayout>
+                    <Label Text="B. Jung" FontAttributes="Bold" FontSize="Medium" />
+                    <Label Text="B.Jung@bkwitten.org" FontSize="Small" LineBreakMode="WordWrap" />
+                </VerticalStackLayout>
+            </HorizontalStackLayout>
+        </Frame>
     </VerticalStackLayout>
+    
+  
 </ContentPage>
