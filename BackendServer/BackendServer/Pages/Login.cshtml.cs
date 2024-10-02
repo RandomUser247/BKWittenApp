@@ -14,7 +14,7 @@ namespace BackendServer.Pages.Account
     {
         private readonly ContentDBContext _context;
 
-        // Constructor for injecting ContentDBContext into the LoginModel
+        // Constructor for injecting database context into the LoginModel
         public LoginModel(ContentDBContext context)
         {
             _context = context;
@@ -24,7 +24,6 @@ namespace BackendServer.Pages.Account
         [BindProperty]
         public InputModel Input { get; set; }
 
-        // Model for handling user input (Email and Password) with validation attributes
         public class InputModel
         {
             [Required] // Ensures that the email field is filled out

@@ -4,6 +4,25 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 
+/* 
+ * Behind Code for the Dashboard (Index.cshtml.cs)
+ * 
+ * This class (IndexModel) handles the backend logic for the content creator dashboard in the Razor Pages environment. It supports:
+ * 
+ * - Fetching and displaying recent posts, pending posts, and events, with pagination for posts.
+ * - Creating new posts with media uploads (images and videos) and setting post attributes based on the current user's role.
+ * - Editing and updating existing posts, including media file handling.
+ * - Deleting posts and managing post confirmation (publishing pending posts).
+ * - Creating new events and validating event details.
+ * - Utilizing user authentication to ensure only authorized users can access or modify content.
+ * - Helper methods like GetCurrentUserAsync for fetching the logged-in user, SaveFileAsync for handling file uploads, and ReloadDataAsync for refreshing page data.
+ * 
+ * Ich hab versucht die Datenbankinteraktion in Services auszulagern. Das hat aber auf den ersten Blick Probleme verursacht.
+ * Die sind aber noch vorhanden und könnte man benutzen.
+ * Wenn ihr die benutzen wollt müsst ihr die wie den DBContext über den Constructor injecten
+ */
+
+
 namespace BackendServer.Pages
 {
     // PageModel for handling the main content creator dashboard.

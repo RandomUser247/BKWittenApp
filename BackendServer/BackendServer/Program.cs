@@ -5,13 +5,36 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
 using BCrypt.Net;
+using BackendServer.Services.Interfaces;
+using BackendServer.Services;
+
+/*
+ * This file sets up an ASP.NET Core web app with SQLite and Razor Pages.
+ * 
+ * 1. **DbContext**: Registers `ContentDBContext` using SQLite for data persistence.
+ * 2. **Authentication**: Implements cookie-based authentication with session expiration.
+ * 3. **Authorization**: Adds role-based policies for "Teacher" and "Admin" access.
+ * 4. **Razor Pages**: Handles UI with server-side rendering.
+ * 5. **Database Seeding**: Seeds initial data if the database is not already populated.
+ * 6. **Pipeline**: Configures middleware for routing, static files, HTTPS, authentication, and authorization.
+ * 7. **Password Helper**: Provides bcrypt-based password hashing and verification.
+ */
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Register the DbContext with dependency injection
+// Register the DbContext 
 builder.Services.AddDbContext<ContentDBContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("ContentDB")));
-// This sets up the connection to the SQLite database using the connection string from the configuration file.
+
+builder.Services.AddScoped<IPostService, PostService>();
+builder.Services.AddScoped<IEventService, EventService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
 
 
 // Add cookie authentication to the app
@@ -26,15 +49,12 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 // Add authorization policies
 builder.Services.AddAuthorization(options =>
 {
-    // Policy that requires the user to have the claim "isTeacher" set to "True"
     options.AddPolicy("RequireTeacherRole", policy =>
         policy.RequireClaim("isTeacher", "True"));
 
-    // Policy that requires the user to have the claim "isAdmin" set to "True"
     options.AddPolicy("RequireAdminRole", policy =>
         policy.RequireClaim("isAdmin", "True"));
 });
-// You can define different policies here that control access to certain areas based on user claims.
 
 // Add services to the container, including Razor Pages for handling UI and server-side code
 builder.Services.AddRazorPages();
@@ -51,7 +71,15 @@ using (var scope = app.Services.CreateScope())
     context.Database.EnsureCreated();
 
     // Call the SeedDataAsync method to populate the database with initial data
-    await context.SeedDataAsync();
+    try
+    {
+        await context.SeedDataAsync();
+        Console.WriteLine("Data Seeded");
+    }
+    catch (Exception ex)
+    {
+        // logger.Exception($"Error seeding database: {ex.Message}");
+    }
 }
 
 // Configure the HTTP request pipeline
@@ -82,7 +110,6 @@ app.UseAuthorization();
 // Map Razor Pages (UI) to be handled by the routing system
 app.MapRazorPages(); 
 
-// Run the application
 app.Run();
 
 // Helper class for password hashing and verification using bcrypt
@@ -91,7 +118,7 @@ public static class PasswordHelper
     // Generate a salt for password hashing using bcrypt
     public static string GenerateSalt(int workFactor = 12)
     {
-        return BCrypt.Net.BCrypt.GenerateSalt(workFactor); // Work factor determines the complexity of the hash
+        return BCrypt.Net.BCrypt.GenerateSalt(workFactor); 
     }
 
     // Hash a password using bcrypt with the generated salt
