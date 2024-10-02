@@ -1,0 +1,58 @@
+﻿@page
+@model BackendServer.Pages.PostModel
+@{
+    ViewData["Title"] = "Posts";
+}
+
+<h1>Posts</h1>
+
+<!-- Form to create a new post -->
+<form method="post" asp-page-handler="Create">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="form-group">
+        <label asp-for="NewPost.Title">Title</label>
+        <input asp-for="NewPost.Title" class="form-control" />
+        <span asp-validation-for="NewPost.Title" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="NewPost.Description">Description</label>
+        <textarea asp-for="NewPost.Description" class="form-control"></textarea>
+        <span asp-validation-for="NewPost.Description" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Create Post</button>
+</form>
+
+<hr />
+
+<!-- List of posts -->
+<table class="table">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Creation Date</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var post in Model.Posts)
+        {
+            <tr>
+                <td>@post.Title</td>
+                <td>@post.Description</td>
+                <td>@post.CreationDate.ToString("yyyy-MM-dd")</td>
+                <td>
+                    <form method="post" asp-page-handler="Delete" asp-route-id="@post.PostID" onsubmit="return confirm('Are you sure you want to delete this post?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

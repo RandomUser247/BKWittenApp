@@ -1,0 +1,54 @@
+﻿@page
+@model StaticModel
+@{
+    ViewData["Title"] = "Manage Static Files";
+}
+
+<h2>Manage Static Files</h2>
+
+<form method="post">
+    @Html.AntiForgeryToken()
+
+    <div class="form-group">
+        <label for="selectedFile">Select a file:</label>
+        <select asp-for="SelectedFile" class="form-control" asp-items="Model.FileOptions" id="fileSelector">
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="content">File Content:</label>
+        <textarea id="content" class="form-control" asp-for="FileContent" rows="10"></textarea>
+    </div>
+
+    <div class="form-group">
+        <button type="submit" name="action" value="Save" class="btn btn-primary">Save</button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.SaveResult))
+    {
+            <p class="alert alert-success">@Model.SaveResult</p>
+    }
+    else if (Model.FileNotFound)
+    {
+            <p class="alert alert-danger">The selected file could not be found.</p>
+    }
+</form>
+
+@section Scripts {
+        <script>
+            document.getElementById("fileSelector").addEventListener("change", function () {
+                document.getElementById("content").value = "";
+                const selectedFile = this.value;
+                fetch(`/Static?handler=Load&file=${selectedFile}`, {
+                    method: 'GET',
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    }
+                })
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById("content").value = data;
+                });
+            });
+        </script>
+}
