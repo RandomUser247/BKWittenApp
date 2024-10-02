@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="BKWitten_App_Frontend.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:BKWitten_App_Frontend.Pages"
+    Shell.FlyoutBehavior="Disabled"
+    Title="BKWInfo">
+<!--Hauptnavigation im unteren Bereich des Bildschirms-->
+    <TabBar>
+        <Tab Title="Home" Icon="house.png">
+            <ShellContent Title="Home" 
+                 ContentTemplate="{DataTemplate local:MainPage}" 
+                 Route="MainPage" />
+        </Tab>
+        <Tab Title="Gebäudeplan" Icon="kartenpin.png">
+            <ShellContent Title="Gebäudeplan" 
+                 ContentTemplate="{DataTemplate local:Buildingplan}" 
+                 Route="Buildingplan" />
+        </Tab>
+        <Tab Title="Lehrerprofile" Icon="picpeople.png">
+            <ShellContent Title="Lehrerprofile" 
+                 ContentTemplate="{DataTemplate local:Teacherprofiles}" 
+                 Route="Teacherprofile" />
+        </Tab>
+        <Tab Title="Kalendar" Icon="kalendertage.png">
+            <ShellContent Title="Kalender" 
+                 ContentTemplate="{DataTemplate local:Calendar}" 
+                 Route="Calendar" />
+        </Tab>
+        <Tab Title="FAQ" Icon="frage.png">
+            <ShellContent Title="FAQ" 
+                ContentTemplate="{DataTemplate local:Faq}" 
+                Route="Faq" />
+        </Tab>
+        <Tab Title="Settings" Icon="api.png">
+         <ShellContent Title="Settings" 
+                ContentTemplate="{DataTemplate local:Settings}" 
+                Route="Settings" />
+        </Tab>
+    </TabBar>
+
+</Shell>

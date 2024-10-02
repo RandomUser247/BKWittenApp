@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="BKWitten_App_Frontend.Pages.Buildingplan"
+             xmlns:local="clr-namespace:BKWitten_App_Frontend.Pages"
+             Title="Gebäudeplan">
+
+    <VerticalStackLayout>
+    
+        <!-- Gebäudeplan laden -->
+        <Image 
+            Source="buildingplan.jpg" 
+            Margin="5" 
+            VerticalOptions="FillAndExpand"
+            HorizontalOptions="FillAndExpand"/>
+    </VerticalStackLayout>
+</ContentPage>

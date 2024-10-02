@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="BKWitten_App_Frontend.Pages.Faq"
+              xmlns:local="clr-namespace:BKWitten_App_Frontend.Pages"
+             Title="FAQ-Seite">
+    <VerticalStackLayout>
+        <Label 
+            Text="FAQ-Seite"
+            VerticalOptions="Center" 
+            HorizontalOptions="Center" />
+        
+        <Frame Margin="40,10" CornerRadius="10" BorderColor="Gray" Padding="10">
+            <HorizontalStackLayout>
+               
+                <VerticalStackLayout>
+                    <Label Text="FAQ" FontAttributes="Bold" FontSize="Medium" />
+                    <Label Text="Hier kommen die FAQs rein." FontSize="Small" LineBreakMode="WordWrap" />
+                </VerticalStackLayout>
+            </HorizontalStackLayout>
+        </Frame>
+
+        <!-- Zweiter Frame mit Bild, Titel und Textkörper -->
+        <Frame Margin="30,10" CornerRadius="10" BorderColor="Gray" Padding="10">
+            <HorizontalStackLayout>
+            
+                <VerticalStackLayout>
+                    <Label Text="Schulordnung" FontAttributes="Bold" FontSize="Medium" />
+                    <Label Text="In diesem Frame steht die Schulordnung." FontSize="Small" LineBreakMode="WordWrap"  />
+                </VerticalStackLayout>
+            </HorizontalStackLayout>
+        </Frame>
+
+        <!-- Dritter Frame mit Bild, Titel und Textkörper -->
+        <Frame Margin="30,10" CornerRadius="10" BorderColor="Gray" Padding="10">
+            <HorizontalStackLayout>
+           
+                <VerticalStackLayout>
+                    <Label Text="Impressum" FontAttributes="Bold" FontSize="Medium" />
+                    <Label Text="Hier wird das Impressum der App angezeigt." FontSize="Small" LineBreakMode="WordWrap"  />
+                </VerticalStackLayout>
+            </HorizontalStackLayout>
+        </Frame>
+
+    </VerticalStackLayout>
+</ContentPage>
