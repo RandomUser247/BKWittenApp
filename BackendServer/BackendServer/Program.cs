@@ -22,17 +22,31 @@ using BackendServer.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+/* Dependency Injection (DI) 
+ * 
+ * In ASP.NET Core, services (dependencies) are registered in the IServiceCollection during app startup, 
+ * and ASP.NET Core automatically provides (injects) these services where needed.
+ */
+
 // Register the DbContext 
+// ContentDBContext is being registered with DI to use a SQLite database. 
+// The connection string "ContentDB" is configured to point to the database location in appsettings.json.
 builder.Services.AddDbContext<ContentDBContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("ContentDB")));
 
+// Register services (utility classes) 
+// AddScoped registers services with a "scoped" lifetime, meaning a new instance is created for each HTTP request 
+// but the same instance is reused within that request. The following services are registered for DI:
 builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IUserService, UserService>();
 
+
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
+        // prevents circular references, which could create loops when instantiating entities.
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     });
 
@@ -83,35 +97,30 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure the HTTP request pipeline
-
 if (!app.Environment.IsDevelopment())
 {
-    // In production, use an exception handler to redirect users to a custom error page
-    app.UseExceptionHandler("/Error");
+    
+    app.UseExceptionHandler("/Error"); // In production, use an exception handler to redirect users to a custom error page
 
-    // Enforce HTTP Strict Transport Security (HSTS) to secure communication in production
-    app.UseHsts();
+    app.UseHsts(); // Enforce HTTP Strict Transport Security (HSTS) to secure communication in production
 }
-// Redirects HTTP requests to HTTPS for secure communication
-app.UseHttpsRedirection(); 
+app.UseHttpsRedirection(); // Redirects HTTP requests to HTTPS for secure communication
 
-// Enables serving of static files like CSS, JS, and images
-app.UseStaticFiles(); 
+app.UseStaticFiles(); // Enables serving of static files like CSS, JS, and images
 
-// Sets up routing for the application
-app.UseRouting(); 
+app.UseRouting(); // Sets up routing for the application
 
- // Enable authentication middleware to handle login and session tracking
-app.UseAuthentication();
+app.UseAuthentication(); // Enable authentication middleware to handle login and session tracking
 
-// Enable authorization middleware to enforce access control
-app.UseAuthorization(); 
+app.UseAuthorization(); // Enable authorization middleware to enforce access control
 
-// Map Razor Pages (UI) to be handled by the routing system
-app.MapRazorPages(); 
+app.MapRazorPages(); // Map Razor Pages (UI) to be handled by the routing system
 
 app.Run();
 
+
+
+// #######################################################################
 // Helper class for password hashing and verification using bcrypt
 public static class PasswordHelper
 {

@@ -43,6 +43,8 @@ namespace BackendServer.Pages
         public Post NewPost { get; set; }
         [BindProperty]
         public Post EditedPost { get; set; }
+        [BindProperty]
+        public Event EditedEvent { get; set; }
 
         // Pagination properties.
         public int CurrentPage { get; set; }
@@ -76,6 +78,7 @@ namespace BackendServer.Pages
         // Method to handle creating a new post.
         public async Task<IActionResult> OnPostCreatePostAsync()
         {
+            // partial validation weil wir nur ein Model validieren wollen
             ModelState.Clear(); // Clear any previous validation state.
 
             // Validate only the NewPost model.
@@ -117,28 +120,38 @@ namespace BackendServer.Pages
             {
                 foreach (var image in PostImages)
                 {
+                    var imagePath = await SaveFileAsync(image);
+                    var imageSize = image.Length; // Get file size in bytes.
+                    var imageType = image.ContentType; // Get file type (e.g., "image/png").
                     var imageEntity = new Media
                     {
                         PostID = NewPost.PostID,
                         IsVideo = false,
                         AltText = ImageAltText,
-                        FilePath = await SaveFileAsync(image), // Save image and get its file path.
+                        FilePath = imagePath,
+                        FileSize = imageSize,
+                        FileType = imageType,
                     };
-                    _context.Media.Add(imageEntity); // Add the image media entity to the database.
+                    _context.Media.Add(imageEntity);
                 }
             }
 
-            // Handle video upload, if any.
             if (PostVideo != null)
             {
+                var videoPath = await SaveFileAsync(PostVideo); // Save video and get its file path.
+                var videoSize = PostVideo.Length; // Get file size in bytes.
+                var videoType = PostVideo.ContentType; // Get file type (e.g., "video/mp4").
+
                 var videoEntity = new Media
                 {
                     PostID = NewPost.PostID,
                     IsVideo = true,
-                    AltText = "Video for post", // Default alt text for videos (can be customized).
-                    FilePath = await SaveFileAsync(PostVideo), // Save video and get its file path.
+                    AltText = "Video for post",
+                    FilePath = videoPath,
+                    FileSize = videoSize,
+                    FileType = videoType
                 };
-                _context.Media.Add(videoEntity); // Add the video media entity to the database.
+                _context.Media.Add(videoEntity);
             }
 
             try
@@ -192,12 +205,17 @@ namespace BackendServer.Pages
             {
                 foreach (var image in PostImages)
                 {
+                    var imagePath = await SaveFileAsync(image);
+                    var imageSize = image.Length; // Get file size in bytes.
+                    var imageType = image.ContentType; // Get file type (e.g., "image/png").
                     var imageEntity = new Media
                     {
                         PostID = post.PostID,
                         IsVideo = false,
                         AltText = ImageAltText,
-                        FilePath = await SaveFileAsync(image), // Save image and get its file path.
+                        FilePath = imagePath,
+                        FileSize = imageSize,
+                        FileType = imageType,
                     };
                     _context.Media.Add(imageEntity);
                 }
@@ -205,12 +223,18 @@ namespace BackendServer.Pages
 
             if (PostVideo != null)
             {
+                var videoPath = await SaveFileAsync(PostVideo); // Save video and get its file path.
+                var videoSize = PostVideo.Length; // Get file size in bytes.
+                var videoType = PostVideo.ContentType; // Get file type (e.g., "video/mp4").
+               
                 var videoEntity = new Media
                 {
                     PostID = post.PostID,
                     IsVideo = true,
                     AltText = "Video for post",
-                    FilePath = await SaveFileAsync(PostVideo), // Save video and get its file path.
+                    FilePath = videoPath,
+                    FileSize = videoSize,
+                    FileType = videoType
                 };
                 _context.Media.Add(videoEntity);
             }
@@ -234,6 +258,7 @@ namespace BackendServer.Pages
         {
             var post = await _context.Posts.FindAsync(postId); // Find the post by ID.
 
+            // TODO: hier muss noch der User abefragt werden. Entweder Teacher+ oder eigener User
             if (post != null)
             {
                 try
@@ -321,6 +346,58 @@ namespace BackendServer.Pages
             }
 
             return RedirectToPage(); // Redirect after event creation.
+        }
+
+
+        // Method to handle editing an existing event.
+        public async Task<IActionResult> OnPostEditEventAsync()
+        {
+            // Clear model state to ensure fresh validation of EditedEvent.
+            ModelState.Clear();
+
+            // Validate only the EditedEvent model.
+            if (!TryValidateModel(EditedEvent, nameof(EditedEvent)))
+            {
+                await ReloadDataAsync();
+                return Page(); // Reload the page if validation fails.
+            }
+
+            var currentUser = await GetCurrentUserAsync(); // Get the current logged-in user.
+            if (currentUser == null)
+            {
+                await ReloadDataAsync();
+                return Page(); // Reload the page if user is not found.
+            }
+            var eventId = EditedEvent.EventID;
+            // Find the event by its ID.
+            Event existingEvent = await _context.Events.FindAsync(eventId);
+            if (existingEvent == null)
+            {
+                ModelState.AddModelError(string.Empty, "The event could not be found.");
+                await ReloadDataAsync();
+                return Page(); // Reload the page if the event is not found.
+            }
+
+            // Update the event details with the new data from EditedEvent.
+            existingEvent.Title = EditedEvent.Title;
+            existingEvent.Description = EditedEvent.Description;
+            existingEvent.StartDate = EditedEvent.StartDate;
+            existingEvent.EndDate = EditedEvent.EndDate;
+
+            try
+            {
+                // Save changes to the database.
+                _context.Events.Update(existingEvent);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, "An error occurred while editing the event: " + ex.Message);
+                await ReloadDataAsync();
+                return Page(); // Show error message and reload the page if something fails.
+            }
+
+            return RedirectToPage(); // Redirect after successful event edit.
         }
 
         // Method to reload the data, including recent posts, pending posts, and events.

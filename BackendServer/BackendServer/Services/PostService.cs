@@ -70,7 +70,6 @@ namespace BackendServer.Services
                         AltText = altText,
                         IsVideo = false,
                         FilePath = await SaveFileAsync(image),
-                        UploadedByUserID = post.UserID,
                         PostID = post.PostID
                     };
                     _context.Media.Add(media);
@@ -84,7 +83,6 @@ namespace BackendServer.Services
                     AltText = "Video for post",
                     IsVideo = true,
                     FilePath = await SaveFileAsync(video),
-                    UploadedByUserID = post.UserID,
                     PostID = post.PostID
                 };
                 _context.Media.Add(media);
@@ -117,7 +115,6 @@ namespace BackendServer.Services
                         AltText = altText,
                         IsVideo = false,
                         FilePath = await SaveFileAsync(image),
-                        UploadedByUserID = post.UserID,
                         PostID = post.PostID
                     };
                     _context.Media.Add(media);
@@ -131,7 +128,6 @@ namespace BackendServer.Services
                     AltText = "Video for post",
                     IsVideo = true,
                     FilePath = await SaveFileAsync(video),
-                    UploadedByUserID = post.UserID,
                     PostID = post.PostID
                 };
                 _context.Media.Add(media);
