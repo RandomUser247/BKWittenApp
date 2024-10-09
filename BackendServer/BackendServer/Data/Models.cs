@@ -68,6 +68,7 @@ namespace ContentDB.Migrations
 
         [ValidateNever]
         public int Likes { get; set; }
+
         public int ViewCount { get; set; }
 
         public bool IsPending { get; set; }
@@ -100,8 +101,6 @@ namespace ContentDB.Migrations
         public string FilePath { get; set; }
         public long FileSize { get; set; }
         public string FileType { get; set; }
-        public int UploadedByUserID { get; set; }
-        public User UploadedBy { get; set; }
 
         // Foreign key to Post
         public int PostID { get; set; }
@@ -118,6 +117,7 @@ namespace ContentDB.Migrations
         [Required(ErrorMessage = "Event title is required")]
         public string Title { get; set; }
 
+        [Required(ErrorMessage = "Event description is required")]
         public string Description { get; set; }
 
         [Required(ErrorMessage = "Start date is required")]
@@ -189,6 +189,10 @@ namespace ContentDB.Migrations
             modelBuilder.Entity<Post>()
                 .Property(p => p.IsPending)
                 .HasDefaultValue(false);
+
+            modelBuilder.Entity<Post>()
+                .Property(p => p.ViewCount)
+                .HasDefaultValue(0);
 
 
         }
@@ -267,9 +271,11 @@ namespace ContentDB.Migrations
                     AltText = "Sample Image",
                     IsVideo = false,
                     FilePath = "images/sample.jpg",
-                    PostID = 1  // Assuming PostID 1 exists
+                    PostID = 1,  // Assuming PostID 1 exists
+                    FileType = "jpg"
                 });
             }
+
 
             await SaveChangesAsync();  // Save media
 
@@ -282,7 +288,7 @@ namespace ContentDB.Migrations
                     Description = "This is a sample event.",
                     StartDate = DateTime.Now.AddDays(7),
                     EndDate = DateTime.Now.AddDays(10),
-                    UserID = user.UserID  // Reference the user
+                    UserID = user.UserID  
                 });
             }
 
